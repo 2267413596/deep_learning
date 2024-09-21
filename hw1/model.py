@@ -1,6 +1,7 @@
 import numpy as np
-import struct
-from utils import load_labels, load_images
+import pickle
+import os
+
 
 class FullyConnectedNeuralNetwork:
     def __init__(self, input_size, hidden_layer1_size, hidden_layer2_size, hidden_layer3_size, output_size,
@@ -23,7 +24,14 @@ class FullyConnectedNeuralNetwork:
         return 1 / (1 + np.exp(-x))
 
     def sigmoid_derivative(self, x):
-        return x * (1 - x)
+        s = self.sigmoid(x)
+        return s * (1 - s)
+
+    def relu(self, x):
+        return np.maximum(0, x)
+
+    def relu_derivative(self, x):
+        return np.where(x > 0, 1, 0)
 
     def softmax(self, x):
         exp_values = np.exp(x - np.max(x, axis=1, keepdims=True))
@@ -33,16 +41,20 @@ class FullyConnectedNeuralNetwork:
     def forward_propagation(self, X):
         params = self.params
         Z1 = np.dot(X, params['W1']) + params['b1']
-        A1 = self.sigmoid(Z1)
+        A1 = self.relu(Z1)
+        # A1 = self.sigmoid(Z1)
 
         Z2 = np.dot(A1, params['W2']) + params['b2']
-        A2 = self.sigmoid(Z2)
+        A2= self.relu(Z2)
+        # A2 = self.sigmoid(Z2)
 
         Z3 = np.dot(A2, params['W3']) + params['b3']
-        A3 = self.sigmoid(Z3)
+        A3 = self.relu(Z3)
+        # A3 = self.sigmoid(Z3)
 
         Z4 = np.dot(A3, params['W4']) + params['b4']
-        A4 = self.softmax(Z4)
+        A4 = self.relu(Z4)
+        # A4 = self.sigmoid(Z4)
 
         cache = {'Z1': Z1, 'A1': A1, 'Z2': Z2, 'A2': A2, 'Z3': Z3, 'A3': A3, 'Z4': Z4, 'A4': A4}
         return A4, cache
@@ -64,17 +76,18 @@ class FullyConnectedNeuralNetwork:
         dW4 = np.dot(A3.T, dZ4)
         db4 = np.sum(dZ4, axis=0, keepdims=True)
 
-        dZ3 = np.dot(dZ4, params['W4'].T) * self.sigmoid_derivative(A3)
+        dZ3 = np.dot(dZ4, params['W4'].T) * self.relu_derivative(A3)
         dW3 = np.dot(A2.T, dZ3)
         db3 = np.sum(dZ3, axis=0, keepdims=True)
 
-        dZ2 = np.dot(dZ3, params['W3'].T) * self.sigmoid_derivative(A2)
+        dZ2 = np.dot(dZ3, params['W3'].T) * self.relu_derivative(A2)
         dW2 = np.dot(A1.T, dZ2)
         db2 = np.sum(dZ2, axis=0, keepdims=True)
 
-        dZ1 = np.dot(dZ2, params['W2'].T) * self.sigmoid_derivative(A1)
+        dZ1 = np.dot(dZ2, params['W2'].T) * self.relu_derivative(A1)
         dW1 = np.dot(X.T, dZ1)
         db1 = np.sum(dZ1, axis=0, keepdims=True)
+        # print(f"Gradients:\ndW1: {np.linalg.norm(dW1)}\ndW2: {np.linalg.norm(dW2)}\ndW3: {np.linalg.norm(dW3)}\ndW4: {np.linalg.norm(dW4)}")
 
         grads = {'dW4': dW4, 'db4': db4, 'dW3': dW3, 'db3': db3, 'dW2': dW2, 'db2': db2, 'dW1': dW1, 'db1': db1}
         return grads
@@ -89,11 +102,20 @@ class FullyConnectedNeuralNetwork:
         predictions, _ = self.forward_propagation(X)
         return np.argmax(predictions, axis=1)
 
+    def save_model(self, folder='model', filename='mnist_model.pkl'):
+        if not os.path.exists(folder):
+            os.makedirs(folder)
+        filepath = os.path.join(folder, filename)
+        with open(filepath, 'wb') as f:
+            pickle.dump(self.params, f)
+        print(f"Model saved to {filepath}")
 
-# 加载数据
-train_images = load_images('train-images.idx3-ubyte')
-train_labels = load_labels('train-labels.idx1-ubyte')
+    def load_model(self, folder='model', filename='mnist_model.pkl'):
+        # 组合文件夹路径和文件名
+        filepath = os.path.join(folder, filename)
 
-# 实例化并训练模型
-nn = FullyConnectedNeuralNetwork(input_size=784, hidden_layer1_size=128, hidden_layer2_size=64, hidden_layer3_size=32,
-                                 output_size=10, learning_rate=0.1)
+        # 加载模型
+        with open(filepath, 'rb') as f:
+            params = pickle.load(f)
+        self.params = params
+        print(f"Model loaded from {filepath}")
