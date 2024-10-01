@@ -1,4 +1,4 @@
-import numpy as np
+import cupy as cp
 import pickle
 import os
 
@@ -8,51 +8,51 @@ class FullyConnectedNeuralNetwork:
                  learning_rate=0.01):
         # 初始化网络参数
         self.params = {
-            'W1': np.random.randn(input_size, hidden_layer1_size) * 0.01,
-            'b1': np.zeros((1, hidden_layer1_size)),
-            'W2': np.random.randn(hidden_layer1_size, hidden_layer2_size) * 0.01,
-            'b2': np.zeros((1, hidden_layer2_size)),
-            'W3': np.random.randn(hidden_layer2_size, hidden_layer3_size) * 0.01,
-            'b3': np.zeros((1, hidden_layer3_size)),
-            'W4': np.random.randn(hidden_layer3_size, output_size) * 0.01,
-            'b4': np.zeros((1, output_size))
+            'W1': cp.random.randn(input_size, hidden_layer1_size) * 0.01,
+            'b1': cp.zeros((1, hidden_layer1_size)),
+            'W2': cp.random.randn(hidden_layer1_size, hidden_layer2_size) * 0.01,
+            'b2': cp.zeros((1, hidden_layer2_size)),
+            'W3': cp.random.randn(hidden_layer2_size, hidden_layer3_size) * 0.01,
+            'b3': cp.zeros((1, hidden_layer3_size)),
+            'W4': cp.random.randn(hidden_layer3_size, output_size) * 0.01,
+            'b4': cp.zeros((1, output_size))
         }
         self.learning_rate = learning_rate
 
     # 激活函数
     def sigmoid(self, x):
-        return 1 / (1 + np.exp(-x))
+        return 1 / (1 + cp.exp(-x))
 
     def sigmoid_derivative(self, x):
         s = self.sigmoid(x)
         return s * (1 - s)
 
     def relu(self, x):
-        return np.maximum(0, x)
+        return cp.maximum(0, x)
 
     def relu_derivative(self, x):
-        return np.where(x > 0, 1, 0)
+        return cp.where(x > 0, 1, 0)
 
     def softmax(self, x):
-        exp_values = np.exp(x - np.max(x, axis=1, keepdims=True))
-        return exp_values / np.sum(exp_values, axis=1, keepdims=True)
+        exp_values = cp.exp(x - cp.max(x, axis=1, keepdims=True))
+        return exp_values / cp.sum(exp_values, axis=1, keepdims=True)
 
     # 前向传播
     def forward_propagation(self, X):
         params = self.params
-        Z1 = np.dot(X, params['W1']) + params['b1']
+        Z1 = cp.dot(X, params['W1']) + params['b1']
         A1 = self.relu(Z1)
         # A1 = self.sigmoid(Z1)
 
-        Z2 = np.dot(A1, params['W2']) + params['b2']
+        Z2 = cp.dot(A1, params['W2']) + params['b2']
         A2= self.relu(Z2)
         # A2 = self.sigmoid(Z2)
 
-        Z3 = np.dot(A2, params['W3']) + params['b3']
+        Z3 = cp.dot(A2, params['W3']) + params['b3']
         A3 = self.relu(Z3)
         # A3 = self.sigmoid(Z3)
 
-        Z4 = np.dot(A3, params['W4']) + params['b4']
+        Z4 = cp.dot(A3, params['W4']) + params['b4']
         A4 = self.relu(Z4)
         # A4 = self.sigmoid(Z4)
 
@@ -73,21 +73,21 @@ class FullyConnectedNeuralNetwork:
         dZ4[range(m), y] -= 1
         dZ4 /= m
 
-        dW4 = np.dot(A3.T, dZ4)
-        db4 = np.sum(dZ4, axis=0, keepdims=True)
+        dW4 = cp.dot(A3.T, dZ4)
+        db4 = cp.sum(dZ4, axis=0, keepdims=True)
 
-        dZ3 = np.dot(dZ4, params['W4'].T) * self.relu_derivative(A3)
-        dW3 = np.dot(A2.T, dZ3)
-        db3 = np.sum(dZ3, axis=0, keepdims=True)
+        dZ3 = cp.dot(dZ4, params['W4'].T) * self.relu_derivative(A3)
+        dW3 = cp.dot(A2.T, dZ3)
+        db3 = cp.sum(dZ3, axis=0, keepdims=True)
 
-        dZ2 = np.dot(dZ3, params['W3'].T) * self.relu_derivative(A2)
-        dW2 = np.dot(A1.T, dZ2)
-        db2 = np.sum(dZ2, axis=0, keepdims=True)
+        dZ2 = cp.dot(dZ3, params['W3'].T) * self.relu_derivative(A2)
+        dW2 = cp.dot(A1.T, dZ2)
+        db2 = cp.sum(dZ2, axis=0, keepdims=True)
 
-        dZ1 = np.dot(dZ2, params['W2'].T) * self.relu_derivative(A1)
-        dW1 = np.dot(X.T, dZ1)
-        db1 = np.sum(dZ1, axis=0, keepdims=True)
-        # print(f"Gradients:\ndW1: {np.linalg.norm(dW1)}\ndW2: {np.linalg.norm(dW2)}\ndW3: {np.linalg.norm(dW3)}\ndW4: {np.linalg.norm(dW4)}")
+        dZ1 = cp.dot(dZ2, params['W2'].T) * self.relu_derivative(A1)
+        dW1 = cp.dot(X.T, dZ1)
+        db1 = cp.sum(dZ1, axis=0, keepdims=True)
+        # print(f"Gradients:\ndW1: {cp.linalg.norm(dW1)}\ndW2: {cp.linalg.norm(dW2)}\ndW3: {cp.linalg.norm(dW3)}\ndW4: {cp.linalg.norm(dW4)}")
 
         grads = {'dW4': dW4, 'db4': db4, 'dW3': dW3, 'db3': db3, 'dW2': dW2, 'db2': db2, 'dW1': dW1, 'db1': db1}
         return grads
@@ -100,7 +100,7 @@ class FullyConnectedNeuralNetwork:
     # 推理（预测）
     def predict(self, X):
         predictions, _ = self.forward_propagation(X)
-        return np.argmax(predictions, axis=1)
+        return cp.argmax(predictions, axis=1)
 
     def save_model(self, folder='model', filename='mnist_model.pkl'):
         if not os.path.exists(folder):
