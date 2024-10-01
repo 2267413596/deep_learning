@@ -88,12 +88,3 @@ class FullyConnectedNeuralNetwork:
     def predict(self, X):
         predictions, _ = self.forward_propagation(X)
         return np.argmax(predictions, axis=1)
-
-
-# 加载数据
-train_images = load_images('train-images.idx3-ubyte')
-train_labels = load_labels('train-labels.idx1-ubyte')
-
-# 实例化并训练模型
-nn = FullyConnectedNeuralNetwork(input_size=784, hidden_layer1_size=128, hidden_layer2_size=64, hidden_layer3_size=32,
-                                 output_size=10, learning_rate=0.1)
