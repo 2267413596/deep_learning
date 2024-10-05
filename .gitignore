@@ -4,3 +4,5 @@
 /hw1/model
 *.zip
 /hw2/model
+/hw2/mnist_data
+/hw2/logs
