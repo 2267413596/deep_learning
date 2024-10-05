@@ -97,7 +97,7 @@ class FullyConnectedNeuralNetwork:
         for key in self.params:
             self.params[key] -= self.learning_rate * grads['d' + key]
 
-    # 推理（预测）
+    # 推理
     def predict(self, X):
         predictions, _ = self.forward_propagation(X)
         return np.argmax(predictions, axis=1)
@@ -109,6 +109,32 @@ class FullyConnectedNeuralNetwork:
         with open(filepath, 'wb') as f:
             pickle.dump(self.params, f)
         print(f"Model saved to {filepath}")
+
+
+# 有个问题，为什么说保存W就行，不用保存b
+    def save_weights(self, folder='weights'):
+        if not os.path.exists(folder):
+            os.makedirs(folder)
+        wi1 = 'wi1.npy'
+        w12 = 'w12.npy'
+        w23 = 'w23.npy'
+        w3o = 'w3o.npy'
+        np.save(os.path.join(folder, wi1), self.params['W1'])
+        np.save(os.path.join(folder, w12), self.params['W2'])
+        np.save(os.path.join(folder, w23), self.params['W3'])
+        np.save(os.path.join(folder, w3o), self.params['W4'])
+
+    def load_weights(self, folder='weights'):
+        if not os.path.exists(folder):
+            os.makedirs(folder)
+        wi1 = 'wi1.npy'
+        w12 = 'w12.npy'
+        w23 = 'w23.npy'
+        w3o = 'w3o.npy'
+        self.params['W1'] = np.load(os.path.join(folder, wi1))
+        self.params['W2'] = np.load(os.path.join(folder, w12))
+        self.params['W3'] = np.load(os.path.join(folder, w23))
+        self.params['W4'] = np.load(os.path.join(folder, w3o))
 
     def load_model(self, folder='model', filename='mnist_model.pkl'):
         # 组合文件夹路径和文件名

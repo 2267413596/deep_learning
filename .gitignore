@@ -1,3 +1,6 @@
 /ENV
 /.git
 /.idea
+/hw1/model
+*.zip
+/hw2/model

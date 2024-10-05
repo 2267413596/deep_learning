@@ -49,28 +49,29 @@ def test_model(X_test, y_test, nn, gpu=False):
 
 if __name__ == '__main__':
     # 使用cupy训练和测试
-    train_images = load_images_cp('data/train-images.idx3-ubyte')
-    train_labels = load_labels_cp('data/train-labels.idx1-ubyte')
-    nn = model_cp.FullyConnectedNeuralNetwork(input_size=784, hidden_layer1_size=256, hidden_layer2_size=128,
-                                           hidden_layer3_size=64, output_size=10, learning_rate=0.1)
-    train(nn, train_images, train_labels, batch_size=128, epochs=100, gpu=True)
+    # train_images = load_images_cp('data/train-images.idx3-ubyte')
+    # train_labels = load_labels_cp('data/train-labels.idx1-ubyte')
+    # nn = model_cp.FullyConnectedNeuralNetwork(input_size=784, hidden_layer1_size=256, hidden_layer2_size=128,
+    #                                        hidden_layer3_size=64, output_size=10, learning_rate=0.1)
+    # train(nn, train_images, train_labels, batch_size=128, epochs=100, gpu=True)
     # nn.save_model(filename="gpu.pkl")
 
     # nn.load_model(filename='gpu.pkl')
-    test_images = load_images_cp('data/t10k-images.idx3-ubyte')
-    test_labels = load_labels_cp('data/t10k-labels.idx1-ubyte')
-    print("test begin")
-    test_model(test_images, test_labels, nn, True)
+    # test_images = load_images_cp('data/t10k-images.idx3-ubyte')
+    # test_labels = load_labels_cp('data/t10k-labels.idx1-ubyte')
+    # print("test begin")
+    # test_model(test_images, test_labels, nn, True)
 
     # 不使用cupy
     train_images = load_images('data/train-images.idx3-ubyte')
     train_labels = load_labels('data/train-labels.idx1-ubyte')
     nn = model.FullyConnectedNeuralNetwork(input_size=784, hidden_layer1_size=256, hidden_layer2_size=128,
                                            hidden_layer3_size=64, output_size=10, learning_rate=0.1)
-    train(nn, train_images, train_labels, batch_size=128, epochs=100)
+    # train(nn, train_images, train_labels, batch_size=128, epochs=100)
     # nn.save_model(filename="cpu.pkl")
 
-    # nn.load_model(filename='cpu.pkl')
+    nn.load_model(filename='cpu.pkl')
+    # nn.save_weights()
     test_images = load_images('data/t10k-images.idx3-ubyte')
     test_labels = load_labels('data/t10k-labels.idx1-ubyte')
     print("test begin")
